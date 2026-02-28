@@ -1,33 +1,43 @@
-This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
+# Auto Translator
 
-## Getting Started
+This is a web extension app that translates the webpage you are. You can either choose auto translate for DOM texts or words in images.
 
-First, run the development server:
+## Instructions for Build and Use
 
-```bash
-pnpm dev
-# or
-npm run dev
-```
+Steps to build and/or run the software:
 
-Open your browser and load the appropriate development build. For example, if you are developing for the chrome browser, using manifest v3, use: `build/chrome-mv3-dev`.
+1. npm create plasmo omni-translate to set up the environment in running plasmo framework.
 
-You can start editing the popup by modifying `popup.tsx`. It should auto-update as you make changes. To add an options page, simply add a `options.tsx` file to the root of the project, with a react component default exported. Likewise to add a content page, add a `content.ts` file to the root of the project, importing some module and do some logic, then reload the extension on your browser.
+2.In package.json file, have this: "manifest": {"permissions": ["sidePanel"]}
+  
+4.
 
-For further guidance, [visit our Documentation](https://docs.plasmo.com/)
+Instructions for using the software:
 
-## Making production build
+1. First step here
+2.
+3.
 
-Run the following:
+## Development Environment
 
-```bash
-pnpm build
-# or
-npm run build
-```
+To recreate the development environment, you need the following software and/or libraries with the specified versions:
 
-This should create a production bundle for your extension, ready to be zipped and published to the stores.
+* First thing here
+*
+*
 
-## Submit to the webstores
+## Useful Websites to Learn More
 
-The easiest way to deploy your Plasmo extension is to use the built-in [bpp](https://bpp.browser.market) GitHub action. Prior to using this action however, make sure to build your extension and upload the first version to the store to establish the basic credentials. Then, simply follow [this setup instruction](https://docs.plasmo.com/framework/workflows/submit) and you should be on your way for automated submission!
+I found these websites useful in developing this software:
+
+* [Website Title](Link)
+*
+*
+
+## Future Work
+
+The following items I plan to fix, improve, and/or add to this project in the future:
+
+* [ ] First thing here
+* [ ]
+* [ ]
