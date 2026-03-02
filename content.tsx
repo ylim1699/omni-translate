@@ -6,10 +6,11 @@ export const config: PlasmoCSConfig = {
 }
 
 const OmniTranslateContent = () => {
+
   useEffect(() => {
-    // 1. THE ACTION: This is where the translation happens
-    const handleTranslation = async (element: HTMLElement) => {
-      // Check if we already translated this to avoid loops
+    // Setting the elements as true to put it through translation logic.
+    const handleTranslationTrue = async (element: HTMLElement) => {
+
       if (element.dataset.translated === "true") return
 
       const originalText = element.innerText.trim()
@@ -17,31 +18,45 @@ const OmniTranslateContent = () => {
       
       // MOCK TRANSLATION (We will plug in AI in the next step)
       // element.innerText = `[TR] ${originalText}` 
-      element.dataset.translated = "true"
+      element.dataset.translated = "true";
     }
 
-    // 2. THE FOCUS: Intersection Observer
-    // This knows exactly what is on your screen right now
+    // Setting the elements as false to put it through untranslation logic or delete. 
+    const handleTranslationFalse = async (element: HTMLElement) => {
+  
+      if (element.dataset.translated === "false") return
+
+      const originalText = element.innerText.trim()
+      console.log("🚀 Untranslating:", originalText.substring(0, 30))
+      
+      // MOCK TRANSLATION (We will plug in AI in the next step)
+      // element.innerText = `[TR] ${originalText}` 
+      element.dataset.translated = "false";
+    }
+
+    // The scanner checks the elements watched my mutation observe. If it's intersecting, or in viewport, 
+    // we call the respective handleTranslation functions.
     const scanner = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          // If the text is on screen, translate it!
-          handleTranslation(entry.target as HTMLElement)
+          // Set the meta data as true to translate
+          handleTranslationTrue(entry.target as HTMLElement);
         } else {
-          // If it leaves the screen, we could reset it if we wanted "bilingual" toggles
-          // console.log("👋 Text left screen")
+          // Set the meta data as false to untranslate and delete.
+          handleTranslationFalse(entry.target as HTMLElement);
         }
       })
     }, { threshold: 0.1 })
 
-    // 3. THE RADAR: Mutation Observer
+    // The mutation observer watches for new elements being added to the page. If it's a instance of HTMLelement, it trims the text for efficiency
+    // and if the text length is greater than 0, meaning there's actual content inside, it calls the scanner function to observe it to see if it's in the viewport. 
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         mutation.addedNodes.forEach((node) => {
           if (node instanceof HTMLElement) {
             const text = node.innerText?.trim()
+            // now observing changes or new nodes. 
             if (text && text.length > 0) {
-              // Instead of just logging, we tell the scanner to WATCH this element
               scanner.observe(node)
             }
           }
@@ -49,8 +64,8 @@ const OmniTranslateContent = () => {
       }
     })
 
-    // Start by scanning everything already on the page
-    document.querySelectorAll("p, span, h1, h2, h3, li").forEach((el) => {
+    // Start by scanning everything already on the page. First line that executes or the initial scan. The observer takes care of new elements.
+    document.querySelectorAll("p, span, h1, h2, h3, h4, h5, h6, li").forEach((el) => {
       scanner.observe(el)
     })
 
