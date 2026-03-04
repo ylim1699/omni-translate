@@ -1,21 +1,52 @@
 import type { PlasmoCSConfig } from "plasmo"
 import { useEffect } from "react"
+import { translateText } from "~utils/translator" 
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"]
 }
 
-const handleViewportEntry = async (element: HTMLElement) => {
 
-  if (element.dataset.translated === "true") return
+// const handleViewportEntry = async (element: HTMLElement) => {
 
-  const originalText = element.innerText.trim()
-  console.log("✅ Translated:", originalText.substring(0, 30))
+//   if (element.dataset.translated === "true") return
+
+//   const originalText = element.innerText.trim()
+//   console.log("✅ Translate:", originalText.substring(0, 30))
   
-  // MOCK TRANSLATION (We will plug in AI in the next step)
-  // element.innerText = `[TR] ${originalText}` 
+//   element.dataset.translated = "true";
+
+  
+//   const translated = await translateText(originalText)
+  
+//   chrome.runtime.sendMessage({
+//     type: "NEW_TRANSLATION",
+//     payload: {
+//       original: originalText,
+//       translated: translated
+//     }
+//   })
+// }
+
+const handleViewportEntry = async (element: HTMLElement) => {
+  if (element.dataset.translated === "true") return;
+
+  const originalText = element.innerText.trim();
+  
+  // 1. Get the user's chosen target language from storage
+  const { targetLang } = await chrome.storage.local.get("targetLang");
+  const finalTarget = targetLang || "en"; // Default to English if not set
+
   element.dataset.translated = "true";
-}
+
+  // 2. Pass the target language to the translator
+  const translated = await translateText(originalText, finalTarget);
+  
+  chrome.runtime.sendMessage({
+    type: "NEW_TRANSLATION",
+    payload: { original: originalText, translated: translated }
+  });
+};
 
 // Setting the elements as false to put it through untranslation logic or delete. 
 const handleViewportExit = async (element: HTMLElement) => {
@@ -23,7 +54,7 @@ const handleViewportExit = async (element: HTMLElement) => {
   if (element.dataset.translated === "false") return
 
   const originalText = element.innerText.trim()
-  console.log("❌ unregistered:", originalText.substring(0, 30))
+  console.log("❌ unregister:", originalText.substring(0, 30))
   
   // MOCK TRANSLATION (We will plug in AI in the next step)
   // element.innerText = `[TR] ${originalText}` 
@@ -60,7 +91,9 @@ const OmniTranslateContent = () => {
             // now observing changes or new nodes. 
             const textNodes = node.querySelectorAll(TEXT_SELECTORS)
             textNodes.forEach((el) => {
-              scanner.observe(el);
+              if (isTranslatable(el as HTMLElement)) {
+                scanner.observe(el);
+              }
             })
 
             if (node.innerText && node.innerText.trim().length > 0) {
