@@ -6,28 +6,6 @@ export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"]
 }
 
-
-// const handleViewportEntry = async (element: HTMLElement) => {
-
-//   if (element.dataset.translated === "true") return
-
-//   const originalText = element.innerText.trim()
-//   console.log("✅ Translate:", originalText.substring(0, 30))
-  
-//   element.dataset.translated = "true";
-
-  
-//   const translated = await translateText(originalText)
-  
-//   chrome.runtime.sendMessage({
-//     type: "NEW_TRANSLATION",
-//     payload: {
-//       original: originalText,
-//       translated: translated
-//     }
-//   })
-// }
-
 const handleViewportEntry = async (element: HTMLElement) => {
   if (element.dataset.translated === "true") return;
 
@@ -35,11 +13,11 @@ const handleViewportEntry = async (element: HTMLElement) => {
   
   // 1. Get the user's chosen target language from storage
   const { targetLang } = await chrome.storage.local.get("targetLang");
-  const finalTarget = targetLang || "en"; // Default to English if not set
+  const finalTarget = targetLang || "en"; 
 
   element.dataset.translated = "true";
-
-  // 2. Pass the target language to the translator
+  console.log("✅ Translate:", originalText.substring(0, 30));
+ 
   const translated = await translateText(originalText, finalTarget);
   
   chrome.runtime.sendMessage({
@@ -56,15 +34,12 @@ const handleViewportExit = async (element: HTMLElement) => {
   const originalText = element.innerText.trim()
   console.log("❌ unregister:", originalText.substring(0, 30))
   
-  // MOCK TRANSLATION (We will plug in AI in the next step)
-  // element.innerText = `[TR] ${originalText}` 
   element.dataset.translated = "false";
 }
 
 const OmniTranslateContent = () => {
 
   useEffect(() => {
-    // Setting the elements as true to put it through translation logic.
 
     // The scanner checks the elements watched my mutation observe. If it's intersecting, or in viewport, 
     // we call the respective handleTranslation functions.
@@ -106,20 +81,26 @@ const OmniTranslateContent = () => {
 
     const TEXT_SELECTORS = "p, h1, h2, h3, h4, h5, h6, li, a, td, th, blockquote, label"
 
-    // Helper: is this worth translating?
     const isTranslatable = (el: HTMLElement): boolean => {
       const text = el.innerText?.trim()
-      if (!text || text.length < 1) return false          // too short
-      if (/^[\d\s\W]+$/.test(text)) return false          // only numbers/symbols
-      if (el.closest("script, style, code, pre")) return false  // skip code
-      if (el.dataset.translated) return false             // already handled
+      if (!text || text.length < 1) return false         
+      if (/^[\d\s\W]+$/.test(text)) return false        
+      if (el.closest("script, style, code, pre")) return false  
+      if (el.dataset.translated) return false           
       return true
     }
-    // Start by scanning everything already on the page. First line that executes or the initial scan. The observer takes care of new elements.
-    document.querySelectorAll(TEXT_SELECTORS).forEach((el) => {
-      if (isTranslatable(el as HTMLElement)) {
-      scanner.observe(el);
-    }});
+    
+    const initialEls = Array.from(document.querySelectorAll(TEXT_SELECTORS))
+      .filter((el) => isTranslatable(el as HTMLElement)) as HTMLElement[];
+
+    initialEls
+      .sort((a, b) => {
+        const ra = a.getBoundingClientRect();
+        const rb = b.getBoundingClientRect();
+        if (Math.abs(ra.top - rb.top) > 10) return ra.top - rb.top;
+        return ra.left - rb.left;
+      })
+      .forEach((el) => scanner.observe(el));
 
     observer.observe(document.body, { childList: true, subtree: true })
 

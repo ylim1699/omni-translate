@@ -6,15 +6,13 @@ export async function translateText(text: string, targetLanguage: string = 'en')
   try {
     // 1. Detect the Source Language
     if (!('LanguageDetector' in window)) throw new Error("Detector not found");
-    const detectorCapabilities = await (window as any).LanguageDetector.capabilities();
-    if (detectorCapabilities.available === 'after-download') {
-        // You can send a message to the SidePanel here to show a "Downloading AI..." bar
+    const detectorAvailability = await (window as any).LanguageDetector.availability();
+    if (detectorAvailability === 'downloadable' || detectorAvailability === 'downloading') {
         console.log("Downloading Language Detection model...");
     }
     const detector = await (window as any).LanguageDetector.create();
     const results = await detector.detect(text);
     
-    // Get the most likely language (e.g., 'ko', 'ja', 'fr')
     const sourceLanguage = results[0].detectedLanguage;
     console.log(`Detected: ${sourceLanguage}, Target: ${targetLanguage}`);
     
@@ -26,6 +24,9 @@ export async function translateText(text: string, targetLanguage: string = 'en')
 
     // 2. Translate using the detected source
     const translationAPI = (window as any).translation;
+    if (!translationAPI) {
+      return await fallbackTranslate(text, sourceLanguage, targetLanguage);
+    }
     const canTranslate = await translationAPI.canTranslate({
       sourceLanguage,
       targetLanguage,
@@ -52,8 +53,9 @@ export async function translateText(text: string, targetLanguage: string = 'en')
 }
 
 async function fallbackTranslate(text: string, source: string, target: string) {
-  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${source}|${target}`;
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURIComponent(text)}`;
   const response = await fetch(url);
   const data = await response.json();
-  return data.responseData.translatedText;
+  // Response is a nested array; extract all translated segments and join them
+  return data[0].map((segment: any[]) => segment[0]).join('');
 }

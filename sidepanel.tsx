@@ -29,7 +29,6 @@ function SidePanel() {
     <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "10px", fontFamily: "sans-serif" }}>
       <h2>Omni-Translator</h2>
       
-      {/* Settings Section */}
       <div style={{ background: "#f5f5f5", padding: "10px", borderRadius: "8px" }}>
         <label>From: </label>
         <label>Translate To: </label>
@@ -41,8 +40,7 @@ function SidePanel() {
       </div>
 
       <hr />
-
-      {/* Translation Display Section */}
+      
       <div style={{ flex: 1, overflowY: "auto" }}>
         <strong>Live Feed:</strong>
         {translationLog.length === 0 && <p style={{ color: "#888" }}>Scroll on a page to see translations...</p>}
